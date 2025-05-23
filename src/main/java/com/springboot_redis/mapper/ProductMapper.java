@@ -18,6 +18,9 @@ public class ProductMapper {
     }
 
     public ProductResponse productToProductResponse(Product product){
+        if (product == null){
+            throw new NullPointerException("Product Repository is null");
+        }
         ProductResponse productResponse = new ProductResponse();
         productResponse.setId(product.getId());
         productResponse.setName(product.getName());

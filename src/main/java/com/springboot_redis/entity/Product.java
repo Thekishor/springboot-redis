@@ -23,4 +23,11 @@ public class Product {
     private Integer quantity;
 
     private Long price;
+
+    public Product(String name, String description, Integer quantity, Long price) {
+        this.name = name;
+        this.description = description;
+        this.quantity = quantity;
+        this.price = price;
+    }
 }
