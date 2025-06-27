@@ -12,12 +12,16 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-public class ProductServiceImpl implements ProductService{
+public class ProductServiceImpl implements ProductService {
 
     private static final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
 
@@ -27,7 +31,11 @@ public class ProductServiceImpl implements ProductService{
 
     private final CacheManager cacheManager;
 
-    public ProductServiceImpl(ProductRepository productRepository, ProductMapper productMapper, CacheManager cacheManager) {
+    public ProductServiceImpl(
+            ProductRepository productRepository,
+            ProductMapper productMapper,
+            CacheManager cacheManager
+    ) {
         this.productRepository = productRepository;
         this.productMapper = productMapper;
         this.cacheManager = cacheManager;
@@ -54,7 +62,8 @@ public class ProductServiceImpl implements ProductService{
     @Cacheable(value = "PRODUCT", key = "#id", unless = "#result.price > 1000")
     @Override
     public ProductResponse getProductByID(Integer id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found With Id: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product Not Found With Id: " + id));
         System.out.println("Fetch From DB :" + product.getId());
         logger.info("Fetch Data From DB");
         return productMapper.productToProductResponse(product);
@@ -68,22 +77,47 @@ public class ProductServiceImpl implements ProductService{
         return products.stream().map(productMapper::productToProductResponse).toList();
     }
 
+    @Override
+    public List<ProductResponse> findAllProductsWithSorting(String field) {
+        List<Product> products = productRepository.findAll(Sort.by(Sort.Direction.ASC, field));
+        return products.stream().map(productMapper::productToProductResponse).toList();
+    }
+
     @CacheEvict(value = "PRODUCT", key = "#id")
     @Override
     public void deleteProduct(Integer id) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found With Id: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product Not Found With Id: " + id));
         productRepository.delete(product);
     }
 
     @CachePut(value = "PRODUCT", key = "#result != null ? #result.id() : null")
     @Override
     public ProductResponse updateProduct(Integer id, ProductRequest productRequest) {
-        Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product Not Found With Id: " + id));
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product Not Found With Id: " + id));
         product.setName(productRequest.getName());
         product.setDescription(productRequest.getDescription());
         product.setPrice(productRequest.getPrice());
         product.setQuantity(productRequest.getQuantity());
         productRepository.save(product);
         return productMapper.productToProductResponse(product);
+    }
+
+    @Override
+    public Page<ProductResponse> findProductWithPagination(int offset, int pageSize) {
+        Page<Product> products = productRepository.findAll(PageRequest.of(offset, pageSize));
+        List<ProductResponse> productResponses =
+                products.stream().map(productMapper::productToProductResponse).toList();
+        return new PageImpl<>(productResponses);
+    }
+
+    @Override
+    public Page<ProductResponse> findProductWithPaginationAndSorting(int offset, int pageSize, String filed) {
+        Page<Product> products = productRepository
+                .findAll(PageRequest.of(offset, pageSize).withSort(Sort.by(filed)));
+        List<ProductResponse> productResponses =
+                products.stream().map(productMapper::productToProductResponse).toList();
+        return new PageImpl<>(productResponses);
     }
 }
