@@ -12,10 +12,13 @@ Spring Boot Redis Cache
 
 ### Product
 - `POST /product/create` → Create a new product
-- `GET /product/getById/{id}` → Get product by ID
-- `GET /product/getAll` → Get all products
-- `PUT /product/updateById/{id}` → Update product
-- `DELETE /product/deleteById/{id}` → Delete product
+- `GET /product/{id}` → Get product by ID
+- `GET /product` → Get all products
+- `PUT /product/{id}` → Update product
+- `DELETE /product/{id}` → Delete product
+- `Get /product/sort/{field}` -> Find All Products By Sorting
+- `Get /product/pagination/{offset}/{pageSize}` -> Find All Products With Pagination
+- `Get /product/paginationAndSort/{offset}/{pageSize}/{field}` -> Find Products With Pagination And Sorting
 
   server:
   port: 9012
