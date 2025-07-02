@@ -2,10 +2,8 @@ package com.springboot_redis.aspect;
 
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.*;
 import org.springframework.stereotype.Component;
 
 @Aspect
@@ -25,6 +23,14 @@ public class AspectOriented {
     @After("loggingPointCut()")
     public void after(JoinPoint joinPoint) {
         log.info("After Method Invoked:{}", joinPoint.getSignature());
+    }
+
+    @Around("loggingPointCut()")
+    public Object log(ProceedingJoinPoint joinPoint) throws Throwable {
+        System.out.println("Aspect log called");
+        Object proceed = joinPoint.proceed();
+        System.out.println("Aspect after log called");
+        return proceed;
     }
 
 }
